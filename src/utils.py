@@ -17,22 +17,31 @@ def find_config_file():
     Returns:
         Path: 見つかった設定ファイルのパス、見つからない場合はNone
     """
+    # ユーザーのホームディレクトリを取得
+    home_dir = os.path.expanduser('~')
+    
     # OS別のデフォルトパスを確認
     if platform.system() == 'Windows':
         # Windows
         appdata = os.environ.get('APPDATA', '')
+        localappdata = os.environ.get('LOCALAPPDATA', '')
         paths = [
+            Path(appdata) / 'Claude' / 'claude_desktop_config.json',
             Path(appdata) / 'Claude Desktop' / 'claude_desktop_config.json',
-            Path(os.environ.get('LOCALAPPDATA', '')) / 'Claude Desktop' / 'claude_desktop_config.json',
+            Path(home_dir) / 'AppData' / 'Roaming' / 'Claude' / 'claude_desktop_config.json',
+            Path(localappdata) / 'Claude' / 'claude_desktop_config.json',
+            Path(localappdata) / 'Claude Desktop' / 'claude_desktop_config.json',
         ]
     elif platform.system() == 'Darwin':
         # macOS
         paths = [
+            Path.home() / 'Library' / 'Application Support' / 'Claude' / 'claude_desktop_config.json',
             Path.home() / 'Library' / 'Application Support' / 'Claude Desktop' / 'claude_desktop_config.json',
         ]
     else:
         # Linux/その他
         paths = [
+            Path.home() / '.config' / 'Claude' / 'claude_desktop_config.json',
             Path.home() / '.config' / 'Claude Desktop' / 'claude_desktop_config.json',
         ]
     
@@ -41,7 +50,13 @@ def find_config_file():
         if path.exists():
             return path
     
-    return None
+    # Windowsの場合のデフォルト設定
+    if platform.system() == 'Windows':
+        return Path(appdata) / 'Claude' / 'claude_desktop_config.json'
+    elif platform.system() == 'Darwin':
+        return Path.home() / 'Library' / 'Application Support' / 'Claude' / 'claude_desktop_config.json'
+    else:
+        return Path.home() / '.config' / 'Claude' / 'claude_desktop_config.json'
 
 
 def create_backup_dir(base_dir):

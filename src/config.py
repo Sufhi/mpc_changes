@@ -17,9 +17,25 @@ def get_default_config_path():
     Returns:
         Path: デフォルトの設定ファイルパス
     """
-    # デフォルトの場所を調べる（Windows環境を想定）
+    # デフォルトの場所を調べる（Windowsの場合）
     app_data = os.environ.get('APPDATA', '')
-    return Path(app_data) / 'Claude Desktop' / 'claude_desktop_config.json'
+    # ユーザーのホームディレクトリを取得
+    home_dir = os.path.expanduser('~')
+    
+    # 候補パスのリスト
+    paths = [
+        Path(app_data) / 'Claude' / 'claude_desktop_config.json',  # 新しいパス形式
+        Path(app_data) / 'Claude Desktop' / 'claude_desktop_config.json',  # 以前の形式
+        Path(home_dir) / 'AppData' / 'Roaming' / 'Claude' / 'claude_desktop_config.json',  # 明示的なパス
+    ]
+    
+    # 最初に存在するパスを返す
+    for path in paths:
+        if path.exists():
+            return path
+    
+    # デフォルトとして最初のパスを返す
+    return paths[0]
 
 
 def load_config(config_path=None):
@@ -112,7 +128,11 @@ def get_mcp_path(config):
         KeyError: 必要なキーが存在しない場合
     """
     try:
-        return config['mcpServers']['filesystem']['args'][2]
+        args = config['mcpServers']['filesystem']['args']
+        # 最後の要素を返す（リストが空でない場合）
+        if args:
+            return args[-1]  # 最後の要素を返す
+        raise IndexError("設定ファイルのargsリストが空です")
     except (KeyError, IndexError):
         raise KeyError("設定ファイルに必要なキーが存在しません")
 
@@ -132,7 +152,13 @@ def set_mcp_path(config, new_path):
         KeyError: 必要なキーが存在しない場合
     """
     try:
-        config['mcpServers']['filesystem']['args'][2] = new_path
+        args = config['mcpServers']['filesystem']['args']
+        if len(args) >= 1:
+            # 既存の最後の要素を置き換える
+            args[-1] = new_path
+        else:
+            # 要素がない場合は追加
+            args.append(new_path)
         return config
     except (KeyError, IndexError):
         raise KeyError("設定ファイルに必要なキーが存在しません")
@@ -158,7 +184,7 @@ def validate_config(config):
             return False
         if not isinstance(config['mcpServers']['filesystem']['args'], list):
             return False
-        if len(config['mcpServers']['filesystem']['args']) < 3:
+        if len(config['mcpServers']['filesystem']['args']) < 1:
             return False
         
         return True

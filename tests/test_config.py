@@ -68,10 +68,10 @@ class TestConfig(unittest.TestCase):
         updated_config = config.set_mcp_path(self.test_config, new_path)
         
         # 設定が更新されているか確認
-        self.assertEqual(updated_config['mcpServers']['filesystem']['args'][2], new_path)
+        self.assertEqual(updated_config['mcpServers']['filesystem']['args'][-1], new_path)
         
         # 元の設定オブジェクトも更新されているか確認（参照渡し）
-        self.assertEqual(self.test_config['mcpServers']['filesystem']['args'][2], new_path)
+        self.assertEqual(self.test_config['mcpServers']['filesystem']['args'][-1], new_path)
     
     def test_validate_config(self):
         """設定検証機能のテスト"""
@@ -109,11 +109,11 @@ class TestConfig(unittest.TestCase):
         }
         self.assertFalse(config.validate_config(invalid_config3))
         
-        # 無効な設定（argsの要素数が不足）
+        # 無効な設定（argsが空配列）
         invalid_config4 = {
             "mcpServers": {
                 "filesystem": {
-                    "args": ["arg1", "arg2"]
+                    "args": []
                 }
             }
         }

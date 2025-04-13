@@ -11,7 +11,6 @@ setup(
     description="Edit Claude Desktop configuration easily",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/yourusername/claude-config-editor",
     packages=find_packages(where="src"),
     package_dir={"": "src"},
     classifiers=[
